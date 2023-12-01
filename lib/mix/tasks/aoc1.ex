@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Aoc1 do
   use Mix.Task
 
+  @type digit() :: String.t()
+
   def run(_) do
     path = elem(File.cwd, 1) <> "/input.txt"
     file = File.stream!(path)
@@ -9,21 +11,18 @@ defmodule Mix.Tasks.Aoc1 do
     IO.puts "Part 2: #{solution(file, &into_numbers/1)}"
   end
 
-  defguard is_digit(term) when
-    term == "0"
-    or term == "1"
-    or term == "2"
-    or term == "3"
-    or term == "4"
-    or term == "5"
-    or term == "6"
-    or term == "7"
-    or term == "8"
-    or term == "9"
+  @spec digit?(Integer.t()) :: boolean()
+  def digit?(x) do
+    case Integer.parse(x) do
+      {_, ""} -> true
+      _ -> false
+    end
+  end
 
+  @spec get_numbers(String.t()) :: [digit()]
   def get_numbers(line) do
     numbers = String.codepoints(line)
-      |> Enum.filter(&(is_digit(&1)))
+      |> Enum.filter(&digit?/1)
 
     [List.first(numbers), List.last(numbers)]
   end
@@ -41,34 +40,42 @@ defmodule Mix.Tasks.Aoc1 do
     "nine" => "9",
   }
 
+  @spec find_digit_starting_at(integer(), String.t()) :: nil | digit()
+  def find_digit_starting_at(x, str) do
+    key = Map.keys(@digits)
+      |> Enum.find(&check_if_word_at_x(x, &1, str))
+
+    case key do
+      nil -> nil
+      _ -> @digits[key]
+    end
+  end
+
+  @spec check_if_word_at_x(integer(), String.t(), String.t()) :: boolean()
+  def check_if_word_at_x(x, word, str) do
+    slice = String.slice(str, x..x + String.length(word) - 1)
+    String.equivalent?(slice, word)
+  end
+
+  @spec to_digit(integer(), String.t()) :: digit()
+  def to_digit(x, line) do
+    char = String.at(line, x)
+    case digit?(char) do
+      true -> char
+      false -> find_digit_starting_at(x, line)
+    end
+  end
+
+  @spec into_numbers(String.t()) :: [digit()]
   def into_numbers(line) do
-    check_if_word_at_x = fn x, word, str ->
-      slice = String.slice(str, x..x + String.length(word) - 1)
-      String.equivalent?(slice, word)
-    end
-
-    find_digit_starting_at = fn x ->
-      key = Map.keys(@digits)
-        |> Enum.find(&check_if_word_at_x.(x, &1, line))
-
-      case key do
-        nil -> nil
-        _ -> @digits[key]
-      end
-    end
-
-    to_digit = fn
-      x when is_digit(x) -> String.at(line, x)
-      x -> find_digit_starting_at.(x)
-    end
-
     numbers = 0..String.length(line) - 1
-      |> Enum.map(to_digit)
+      |> Enum.map(&to_digit(&1, line))
       |> Enum.filter(fn x -> !is_nil(x) and String.length(x) != 0 end)
 
     [List.first(numbers), List.last(numbers)]
   end
 
+  @spec solution(File.Stream.t(), (String.t() -> String.t())) :: integer()
   def solution(filestream, func) do
     filestream
       |> Enum.map(&String.trim(&1))

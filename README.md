@@ -1,16 +1,16 @@
-# AOC1
+# AOC
 
 **TODO: Add description**
 
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `aoc1` to your list of dependencies in `mix.exs`:
+by adding `aoc` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:aoc1, "~> 0.1.0"}
+    {:aoc, "~> 0.1.0"}
   ]
 end
 ```
