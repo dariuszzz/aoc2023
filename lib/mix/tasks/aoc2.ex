@@ -9,6 +9,7 @@ defmodule Mix.Tasks.Aoc2 do
     IO.puts "Part 1: #{part2(file)}"
   end
 
+  @spec minimum_cubes([[{integer(), String.t()}]]) :: {integer(), integer(), integer()}
   def minimum_cubes(sets) do
     List.flatten(sets)
       |> Enum.reduce({0, 0, 0}, fn {amount, color}, {r, g, b} ->
@@ -32,7 +33,7 @@ defmodule Mix.Tasks.Aoc2 do
   end
 
   @spec part1_filter(list()) :: list()
-  def part1_filter([_ | sets]) do
+  def part1_filter([ _ | sets ]) do
     List.flatten(sets)
       |> Enum.all?(fn set ->
         case set do
@@ -55,7 +56,7 @@ defmodule Mix.Tasks.Aoc2 do
 
   @spec parse(String.t()) :: [integer() | [{integer(), String.t()}]]
   def parse(line) do
-      [game | sets] = String.split(line, ":")
+      [ game | sets ] = String.split(line, ":")
       game_id = Enum.at(String.split(game, " "), 1)
       game_id = elem(Integer.parse(game_id), 0)
 
