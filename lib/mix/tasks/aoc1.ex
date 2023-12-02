@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Aoc1 do
   @type digit() :: String.t()
 
   def run(_) do
-    path = elem(File.cwd, 1) <> "/input.txt"
+    path = elem(File.cwd, 1) <> "/inputs/input1.txt"
     file = File.stream!(path)
 
     IO.puts "Part 1: #{solution(file, &get_numbers/1)}"
