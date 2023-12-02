@@ -32,7 +32,7 @@ defmodule Mix.Tasks.Aoc2 do
       |> Enum.sum()
   end
 
-  @spec part1_filter(list()) :: list()
+  @spec part1_filter(list()) :: boolean()
   def part1_filter([ _ | sets ]) do
     List.flatten(sets)
       |> Enum.all?(fn set ->
