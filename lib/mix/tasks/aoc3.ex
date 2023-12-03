@@ -21,17 +21,14 @@ defmodule Mix.Tasks.Aoc3 do
   def part1(filestream) do
       {numbers, special_chars} = parse(filestream)
 
-      sum = numbers
+      numbers
         |> Enum.filter(fn number_kv ->
           special_chars
-            |> Enum.any?(fn {char_key, _} ->
-              adjacent?(char_key, number_kv)
-            end)
+            |> Map.keys()
+            |> Enum.any?(&adjacent?(&1, number_kv))
         end)
         |> Enum.map(fn {_, num_val} -> String.to_integer(num_val) end)
         |> Enum.sum()
-
-      sum
   end
 
   def part2(filestream) do
@@ -41,9 +38,7 @@ defmodule Mix.Tasks.Aoc3 do
       |> Enum.filter(fn {_, char} -> char == "*" end)
       |> Enum.map(fn {char_key, _} ->
         adjacent_nums = numbers
-          |> Enum.filter(fn number_kv ->
-            adjacent?(char_key, number_kv)
-          end)
+          |> Enum.filter(&adjacent?(char_key, &1))
           |> Enum.map(fn {_, num_val} -> String.to_integer(num_val) end)
 
         case adjacent_nums do
@@ -77,14 +72,14 @@ defmodule Mix.Tasks.Aoc3 do
         res = line <> "."
           |> String.codepoints()
           |> Enum.with_index()
-          |> Enum.reduce({map, {0, ""}}, fn {char, x}, {line_map, {initial_x, num}} ->
+          |> Enum.reduce({map, ""}, fn {char, x}, {line_map, num} ->
             case char in @digits do
-              true when initial_x == 0 -> {line_map, {x, num <> char}}
-              true -> {line_map, {initial_x, num <> char}}
+              true -> {line_map, num <> char}
               false when num != "" ->
-                line_map = Map.put(line_map, {initial_x, y}, num)
-                {line_map, {0, ""}}
-              false -> {line_map, {initial_x, num}}
+                num_start_x = x - String.length(num)
+                line_map = Map.put(line_map, {num_start_x , y}, num)
+                {line_map, ""}
+              false -> {line_map, num}
             end
           end)
 
