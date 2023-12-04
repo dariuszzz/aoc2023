@@ -6,9 +6,9 @@ defmodule Mix.Tasks.Aoc4 do
     file = File.stream!(path)
 
     {p1time, p1} = :timer.tc(&part1/1, [file])
-    IO.puts "Part 1: #{p1} - took #{p1time/1000}ms"
+    io.puts "part 1: #{p1} - took #{p1time/1000}ms"
     {p2time, p2} = :timer.tc(&part2/1, [file])
-    IO.puts "Part 2: #{p2} - took #{p2time/1000}ms"
+    io.puts "part 2: #{p2} - took #{p2time/1000}ms"
   end
 
   def part1(filestream) do
