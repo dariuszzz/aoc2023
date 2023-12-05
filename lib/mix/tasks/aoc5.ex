@@ -7,8 +7,6 @@ defmodule Mix.Tasks.Aoc5 do
 
     {p1time, p1} = :timer.tc(&part1/1, [file])
     IO.puts "Part 1: #{p1} - took #{p1time/1000}ms"
-    {p2time, p2} = :timer.tc(&part2/1, [file])
-    IO.puts "Part 2: #{p2} - took #{p2time/1000}ms"
   end
 
   def part1(filestream) do
@@ -21,13 +19,12 @@ defmodule Mix.Tasks.Aoc5 do
           |> Enum.map(&String.to_integer/1)
       end)
 
-    {maps, _} = filestream
+    {maps, last_map} = filestream
       |> Enum.drop_while(fn line -> String.trim(line) != "" end)
       |> Enum.reject(fn line -> String.trim(line) == "" end)
-      |> IO.inspect
       |> Enum.reduce({ [], [] }, fn line, { transforms, curr_transforms }  ->
         case String.split(line, ":") do
-          [_, _] when length(curr_transforms) != 0 -> {[ curr_transforms | transforms ], [] }
+          [_, _] when length(curr_transforms) != 0 -> {[ Enum.reverse(curr_transforms) | transforms ], [] }
           [_, _] -> { transforms, curr_transforms }
           _ ->
             [destination_start, source_start, range] = line
@@ -37,33 +34,27 @@ defmodule Mix.Tasks.Aoc5 do
 
             { transforms, [ { destination_start, source_start, range } | curr_transforms ] }
         end
-
       end)
 
+    maps = Enum.reverse([ Enum.reverse(last_map) | maps ])
 
-    values = seeds
+    seeds
       |> Enum.map(fn seed ->
         maps
           |> Enum.reduce(seed, fn transforms, seed ->
             transforms
-              |> Enum.reduce(seed, fn {destination_start, source_start, range}, seed ->
+              |> Enum.reduce_while(seed, fn {destination_start, source_start, range}, seed ->
                 source_range = source_start..(source_start + range - 1)
-                destination_range = destination_start..(destination_start + range - 1)
+                # destination_range = destination_start..(destination_start + range - 1)
                 case seed in source_range do
                   true ->
                     diff = seed - source_start
-                    destination_start + diff
-                  false -> seed
+                    {:halt, destination_start + diff}
+                  false -> {:cont, seed}
                 end
               end)
           end)
       end)
-
-    IO.inspect values
-    "todo"
-  end
-
-  def part2(filestream) do
-    "todo"
+      |> Enum.reduce(fn val, min -> min(val, min) end)
   end
 end
