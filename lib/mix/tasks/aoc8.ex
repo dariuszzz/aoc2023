@@ -14,20 +14,19 @@ defmodule Mix.Tasks.Aoc8 do
   def part1(filestream) do
     {moves, _, map} = parse_input(filestream)
 
-    count_steps_while(moves, map, "AAA", fn curr_element -> curr_element == "ZZZ" end)
+    count_steps_while(moves, map, "AAA", &(&1 == "ZZZ"))
   end
 
   def part2(filestream) do
     {moves, elements, map} = parse_input(filestream)
 
+    lcd = fn (a, b) -> Integer.floor_div((a * b), Integer.gcd(a, b)) end
+    step_count = fn starting_pos -> count_steps_while(moves, map, starting_pos, &String.ends_with?(&1, "Z")) end
+
     elements
       |> Enum.filter(fn elem -> String.ends_with?(elem, "A") end)
-      |> Enum.map(fn starting_pos ->
-        count_steps_while(moves, map, starting_pos, &String.ends_with?(&1, "Z"))
-      end)
-      |> Enum.reduce(fn steps, acc ->
-        Integer.floor_div((steps * acc), Integer.gcd(steps, acc))
-      end)
+      |> Enum.map(step_count)
+      |> Enum.reduce(fn steps, acc -> lcd.(steps, acc) end)
   end
 
   def count_steps_while(moves, map, starting_pos, pred) do
