@@ -12,41 +12,9 @@ defmodule Mix.Tasks.Aoc8 do
   end
 
   def part1(filestream) do
-    {moves, elements, map} = parse_input(filestream)
+    {moves, _, map} = parse_input(filestream)
 
-    stepsTaken = findZZZ(moves, 0, map, 0, ["AAA"])
-
-    stepsTaken
-  end
-
-  def findZZZ(_, _, _, step, [ currElement | _ ] = elementsTraversed) when currElement == "ZZZ", do: step
-  def findZZZ(moves, moveIndex, map, step, [ currElement | _ ] = elementsTraversed) when currElement != "ZZZ" do
-    move = Enum.at(moves, moveIndex)
-    {path1, path2} = Map.get(map, currElement)
-    moveIndex = case moveIndex + 1 do
-      x when x >= length(moves) -> 0
-      x -> x
-    end
-    case move do
-      _ when currElement == path1 and path1 == path2 -> step
-      "L" -> findZZZ(moves, moveIndex, map, step + 1, [ path1 | elementsTraversed ])
-      "R" -> findZZZ(moves, moveIndex, map, step + 1, [ path2 | elementsTraversed ])
-    end
-  end
-
-  def findEndingInZ(_, _, _, step, [ currElement | _ ]) when binary_part(currElement, 2, 1) == "Z", do: step
-  def findEndingInZ(moves, moveIndex, map, step, [ currElement | _ ] = elementsTraversed) when binary_part(currElement, 2, 1) != "Z" do
-    move = Enum.at(moves, moveIndex)
-    {path1, path2} = Map.get(map, currElement)
-    moveIndex = case moveIndex + 1 do
-      x when x >= length(moves) -> 0
-      x -> x
-    end
-    case move do
-      _ when currElement == path1 and path1 == path2 -> step
-      "L" -> findEndingInZ(moves, moveIndex, map, step + 1, [ path1 | elementsTraversed ])
-      "R" -> findEndingInZ(moves, moveIndex, map, step + 1, [ path2 | elementsTraversed ])
-    end
+    count_steps_while(moves, map, "AAA", fn curr_element -> curr_element == "ZZZ" end)
   end
 
   def part2(filestream) do
@@ -55,11 +23,29 @@ defmodule Mix.Tasks.Aoc8 do
     elements
       |> Enum.filter(fn elem -> String.ends_with?(elem, "A") end)
       |> Enum.map(fn starting_pos ->
-        findEndingInZ(moves, 0, map, 0, [starting_pos])
+        count_steps_while(moves, map, starting_pos, &String.ends_with?(&1, "Z"))
       end)
       |> Enum.reduce(fn steps, acc ->
         Integer.floor_div((steps * acc), Integer.gcd(steps, acc))
       end)
+  end
+
+  def count_steps_while(moves, map, starting_pos, pred) do
+      moves
+        |> Stream.cycle()
+        |> Stream.transform({0, starting_pos}, fn move, {step, curr_element} ->
+          case pred.(curr_element) do
+            true -> {:halt, step}
+            false ->
+              {path1, path2} = Map.get(map, curr_element)
+              case move do
+                "L" -> {[step + 1], {step + 1, path1}}
+                "R" -> {[step + 1], {step + 1, path2}}
+              end
+          end
+        end)
+        |> Enum.to_list()
+        |> Enum.at(-1)
   end
 
   def parse_input(filestream) do
